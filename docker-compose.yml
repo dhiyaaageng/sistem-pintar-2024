@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: sispin_project
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sispin_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./server
+    container_name: sispin_backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/sispin_db
+      FLASK_ENV: production
+      META_TOKEN: ${META_TOKEN}
+      META_URL: ${META_URL}
+      SECRET_KEY: ${SECRET_KEY}
+  
+  frontend:
+    build: .
+    container_name: sispin_frontend
+    ports:
+      - "3000:80"
+    environment:
+      API_URL: http://backend:8000/api
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
